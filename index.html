@@ -1,52 +1,350 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
-    <link rel="stylesheet" href="style.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login with Floating Labels & Loader</title>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <div class="form-box">
-        <h2>Login</h2>
-        <form>
-          <label for="email">Email:</label>
-          <input type="email" id="email" placeholder="Enter email" required />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
 
-          <label for="password">Password:</label>
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #0284a8;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden; /* prevent scroll during loader */
+    }
+
+    /* Loading Overlay */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #0284a8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.6s ease;
+    }
+
+    #loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 70px;
+      height: 70px;
+      border: 8px solid #ffffff44;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px #ffffffaa;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #loader p {
+      color: white;
+      font-weight: 600;
+      font-size: 1.3rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      user-select: none;
+      text-shadow: 0 0 6px #00000055;
+    }
+
+    /* Container hidden while loader active */
+    .container {
+      display: none;
+      background-color: #fff;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 360px;
+      z-index: 1;
+      /* will be shown with JS */
+    }
+
+    /* Show container after loader */
+    .container.visible {
+      display: block;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-box h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 600;
+      color: #034a5f;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    /* Inputs */
+    input[type='email'],
+    input[type='password'] {
+      width: 100%;
+      padding: 14px 45px 14px 15px;
+      border-radius: 12px;
+      border: 1.5px solid #ccc;
+      background: #f0f4f8;
+      font-size: 15px;
+      box-shadow: inset 2px 2px 5px #d1d9e6,
+        inset -5px -5px 10px #ffffff;
+      outline: none;
+      cursor: text;
+      transition:
+        border-color 0.3s ease,
+        box-shadow 0.4s ease,
+        transform 0.3s ease;
+    }
+
+    /* Floating label */
+    label {
+      position: absolute;
+      left: 15px;
+      top: 14px;
+      color: #666;
+      font-weight: 500;
+      pointer-events: none;
+      transition: 0.3s ease all;
+      background: white;
+      padding: 0 4px;
+      border-radius: 3px;
+      user-select: none;
+    }
+
+    input:focus + label,
+    input:not(:placeholder-shown) + label {
+      top: -10px;
+      left: 12px;
+      font-size: 12px;
+      color: #0284a8;
+      box-shadow: 0 0 5px rgba(2, 132, 168, 0.7);
+    }
+
+    /* Input focus effect */
+    input:focus {
+      border-color: #0284a8;
+      box-shadow:
+        3px 3px 6px rgba(0, 0, 0, 0.2),
+        inset 2px 2px 5px #a0c4d8,
+        inset -5px -5px 10px #d9f0fc;
+      background: #e2f0f8;
+      transform: translateY(-3px) scale(1.05);
+    }
+
+    /* Icons */
+    .icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #0284a8;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Checkbox */
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .checkbox-group input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      margin-left: 8px;
+      font-size: 14px;
+      color: #034a5f;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Button */
+    button {
+      background-color: #006d8f;
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 17px;
+      transition: background-color 0.3s ease, transform 0.2s ease,
+        box-shadow 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 109, 143, 0.3);
+    }
+
+    button:hover {
+      background-color: #005b78;
+      box-shadow: 0 8px 16px rgba(0, 91, 120, 0.5);
+      transform: translateY(-3px);
+    }
+
+    /* Links */
+    .links {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #034a5f;
+    }
+
+    .links a {
+      color: #006dda;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Focus outline for accessibility */
+    input:focus,
+    button:focus,
+    .checkbox-group input:focus + label {
+      outline: 3px solid #0284a8;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loader Overlay -->
+  <div id="loader" role="alert" aria-live="assertive" aria-label="Loading content">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Login Container -->
+  <div class="container" aria-hidden="true">
+    <div class="form-box">
+      <h2>Login</h2>
+      <form>
+        <div class="form-group">
+          <input
+            type="email"
+            id="email"
+            placeholder=" "
+            required
+            autocomplete="username"
+            aria-describedby="emailHelp"
+          />
+          <label for="email">Email</label>
+          <span class="icon" aria-hidden="true">📧</span>
+        </div>
+
+        <div class="form-group">
           <input
             type="password"
             id="password"
-            placeholder="Enter password"
+            placeholder=" "
             required
+            autocomplete="current-password"
           />
+          <label for="password">Password</label>
+          <span class="icon" aria-hidden="true">🔒</span>
+        </div>
 
-          <div class="checkbox-group">
-            <input type="checkbox" id="show-password" />
-            <label for="show-password">Show Password</label>
-          </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="show-password" />
+          <label for="show-password">Show Password</label>
+        </div>
 
-          <button type="submit">Sign In</button>
+        <button type="submit">Sign In</button>
 
-          <div class="links">
-            <p>
-              Forgot <a href="#">Username</a> / <a href="#">Password</a>?
-            </p>
-            <p>
-              Don't have an account? <a href="#">Sign up</a>
-            </p>
-          </div>
-        </form>
-      </div>
+        <div class="links">
+          <p>
+            Forgot <a href="#">Username</a> / <a href="#">Password</a>?
+          </p>
+          <p>
+            Don't have an account? <a href="#">Sign up</a>
+          </p>
+        </div>
+      </form>
     </div>
-  </body>
+  </div>
+
+  <script>
+    // Toggle password visibility
+    const showPasswordCheckbox = document.getElementById('show-password');
+    const passwordInput = document.getElementById('password');
+    const loader = document.getElementById('loader');
+    const container = document.querySelector('.container');
+
+    showPasswordCheckbox.addEventListener('change', () => {
+      passwordInput.type = showPasswordCheckbox.checked ? 'text' : 'password';
+    });
+
+    // Show loader for 3 seconds, then reveal form
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        loader.classList.add('hidden');
+        // After fadeout transition, hide loader completely and show form
+        loader.addEventListener('transitionend', () => {
+          loader.style.display = 'none';
+          container.classList.add('visible');
+          container.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'auto'; // re-enable scroll
+        }, { once: true });
+      }, 3000);
+    });
+  </script>
+</body>
 </html>
